@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace命令空间特殊作用，如果使用mapper动态代理方法，这里就需要配置mapper接口地址 -->
+
+<mapper namespace="com.itheima.mybatis.dao.OrderMapperCustom">
+      <!-- 定义订单信息及用户信息的resultMap -->
+      <resultMap type="orders" id="OrdersUserResultMap">
+        <!-- id:订单信息的唯一约束，如果由多个字段决定一条唯一记录，id标签需要定义多个 -->
+         <id column="id" property="id"/>
+         <result column="order_number" property="order_number"/>
+         <result column="user_id" property="user_id"/>
+         <!-- 配置用户映射信息，将sql查询的用户信息映射到orders中的user属性中，
+              association:用于单个关联对象的映射property:
+                                               将关联信息映射到orders的那个属性 
+              javaType：映射属性的类型-->
+              <association property="user" javaType="com.itheima.mybatis.pojo.User">
+                 <!-- id：关联的用户信息的唯一约束property:id指定的列映射到关联 com.itheima.mybatis.pojo.User类的那个属性-->
+                  <id column="user_id" property="id"/>
+                  <result column="username" property="username"/>
+                  <result column="address" property="address"/>
+              </association>
+          
+      </resultMap>
+      
+       <!-- 定义订单及订单明细的resultMap extends:继承那个resultMap,如果是跨namespace前边加namesapce是 -->
+       <resultMap type="orders" id="orderUserDetailResultMap"
+        extends="OrdersUserResultMap">
+        <!-- 订单及用户信息，继承orderUserResultMap -->    
+         <!-- 映射订单明细信息collection:映射集合对象 property:将明细信息映射到那个集合属性中。ofType:集合中对象的类型 -->
+          <collection property="orderdetails" ofType="com.itheima.mybatis.pojo.Orderdetail">
+                <!-- id:订单明细的唯一约束
+                     property:ofType指定类型的属性
+                 -->
+                 <id column="orderdetail_id" property="id"/>
+                 <result column="item_id" property="item_id"/>
+                 <result column="item_num" property="item_num"/>
+                 <result column="item_price" property="item_price"/>
+          </collection>
+       </resultMap>
+        
+        <!-- 定义订单及明细和商品信息 -->
+        <resultMap type="orders" id="ordersUserDetailItemResultMap"
+          extends="OrdersUserResultMap">
+           
+          <!-- 订单及用户信息,继承于OrdersUserResultMap -->
+            <!-- 映射订单明细信息collection:映射集合对象 property:将明细信息映射到那个集合属性中。ofType:集合中对象的类型 -->
+             <collection property="orderdetails" ofType="com.itheima.mybatis.pojo.Orderdetail">
+                <!-- id:订单明细的唯一约束property:ofType指定类型的属性 -->
+                 <id column="orderdetail_id" property="id"/>
+                 
+                  <result column="item_id" property="item_id"/>
+                  <result column="item_num" property="item_num"/>
+                  <result column="item_price" property="item_price"/>
+              <!-- 映射商品信息
+                 property:将商品信息到com.itheima.mybatis.pojo.Orderdetail的items属性中-->
+                 <association property="items" javaType="com.itheima.mybatis.pojo.Items">
+                    <!--id：商品信息的唯一标示-->
+                     <id column="item_id" property="id"/>
+                     <result column="item_detail" property="item_detail"/>
+                     <result column="item_name" property="item_name"/>
+                     <result column="item_price" property="item_price"/>
+                     
+                 
+                 </association>
+             </collection>
+             
+                  
+        </resultMap>
+        
+          <!-- 订单及用户的resultMap，实现延迟加载 -->
+           <resultMap type="orders" id="ordersResultMap">
+               <!-- 配置订单信息的映射 -->
+               <id column="id" property="id"/>
+               
+                <result column="user_id" property="user_id"/>
+                <result column="order_number" property="order_number"/>
+                
+                
+                <!-- 配置延迟加载 用户信息 
+                   select:延迟加载 调用的statement,如果跨命名空间，需要加上namespace
+                   column:将那一列的值作为参数 传到延迟加载的statement
+                -->
+                  <association property="user" javaType="com.itheima.mybatis.pojo.User"
+                   select="com.itheima.mybatis.dao.UserMapper.findUserById" column="user_id"
+                  >
+                     
+                  
+                  </association>
+                 
+                  
+              
+           </resultMap>
+         
+        
+        
+        
+     <!-- 使用resultType实现订单查询，关联查询用户信息 -->
+     <select id="findOrdersUserList"  resultType="com.itheima.mybatis.pojo.OrderCustom">
+          SELECT orders.*,
+                  user.username,
+                  user.address
+                  FROM
+                  orders,
+                  user
+                  where orders.user_id=user.id
+     
+     </select> 
+     
+     
+      <!-- 使用resultType实现订单查询，关联查询用户信息 -->
+      <select id="findOrdersUserListResultMap" resultMap="OrdersUserResultMap">
+           SELECT orders.*,
+                  user.username,
+                  user.address
+                  FROM
+                  orders,
+                  user
+                  where orders.user_id=user.id
+     
+      
+      
+      </select>
+      
+       <!-- 查询订单及订单明细 -->
+        <select id="findOrderUserDetailList" resultMap="orderUserDetailResultMap">
+           SELECT orders.*,
+			user.username,
+			user.address,
+			orderdetail.id rderdetail_id,
+			orderdetail.item_id,
+			orderdetail.item_num,
+			orderdetail.item_price
+			FROM 
+			orders,
+			USER,
+			orderdetail
+	      WHERE orders.user_id=user.id AND orders.id=orderdetail.orders_id
+        
+        </select>
+        <!-- 查询订单及订单明细信息及商品信息 -->
+        <select id="findOrdersUserDetailItemList" resultMap="ordersUserDetailItemResultMap">
+              SELECT orders.*,
+				user.username,
+				user.address,
+				orderdetail.id rderdetail_id,
+				orderdetail.item_id,
+				orderdetail.item_num,
+				orderdetail.item_price,
+				items.item_detail,
+				items.item_name,
+				items.item_price item_price_price
+				FROM 
+				orders,
+				USER,
+				orderdetail,
+				items
+              WHERE orders.user_id=user.id AND orders.id=orderdetail.orders_id AND orderdetail.item_id=items.id
+        
+        </select>
+        
+         <!-- 订单信息查询 -->
+         <select id="findOrderList" resultMap="ordersResultMap">
+            select * from orders
+         
+         </select>
+</mapper>

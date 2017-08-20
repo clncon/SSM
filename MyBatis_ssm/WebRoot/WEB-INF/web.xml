@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+
+
+   <!-- 加载spring的容器 -->
+   <context-param>
+   
+       <param-name>contextConfigLocation</param-name>
+       <param-value>/WEB-INF/classes/spring/applicationContext.xml,/WEB-INF/classes/spring/applicationContext-*.xml</param-value>
+       
+   </context-param>
+   <listener>
+       <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+   </listener>
+   
+   <!-- post乱码处理 -->
+   
+    <filter>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>utf-8</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>CharacterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+    <!-- 前端控制器 -->
+    <servlet>
+       <servlet-name>springmvc</servlet-name>
+       <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- contextConfigLocation指定Springmvc的全局配置文件
+                                     如果contextConfigLocation不指定，默认找配置文件名称:servlet的name+"-servlet.xml"+
+           -->
+          <init-param>
+             <param-name>contextConfigLocation</param-name>
+             <param-value>classpath:spring/springmvc.xml</param-value>
+          </init-param>
+     </servlet> 
+      <servlet-mapping>
+         <servlet-name>springmvc</servlet-name>
+         <url-pattern>*.action</url-pattern>
+      </servlet-mapping>   
+</web-app>

@@ -1,0 +1,2 @@
+1.出现了getTimeOut()的错误时
+注意调整你的mybatis-spring。jar的版本

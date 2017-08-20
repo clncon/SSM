@@ -1,0 +1,12 @@
+当出现The request sent by the client was syntactically incorrect这个错误在转发页面时
+解决方法：
+  配置该属性编辑器
+   @InitBinder  
+public void initBinder(WebDataBinder binder) {  
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");  
+    dateFormat.setLenient(false);  
+    binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
+
+    
+关于访问方法不存在的问题
+     1.可能在Action上没有加Controller注解，因为注解Controller表示为该Action为控制层,提供控制转移的服务

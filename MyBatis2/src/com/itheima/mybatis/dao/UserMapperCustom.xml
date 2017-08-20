@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace命令空间特殊作用，如果使用mapper动态代理方法，这里就需要配置mapper接口地址 -->
+<mapper namespace="com.itheima.mybatis.dao.UserMapperCustom">
+
+     <!-- sql片段 -->
+        <!-- 用户查询条件
+            id:在namepace中的唯一标示
+         -->
+         
+          <sql id="query_user_where">
+               <!-- 这里调用queryNo的getUser方法获取user的值 -->
+              <if test="user!=null">
+                 <!-- 这里调用queryVo的user的getUsername的方法获取username的值-->
+                  <if test="user.username!=null and user.username!=''">
+                     and user.username=#{user.username}
+                  </if>
+                  <if test="user.sex!=null and user.sex!=''">
+                      and user.sex=#{user.sex}
+                  </if>
+                  
+              </if>
+              
+                <if test="ids!=null">
+                     <!-- 根据传入的id数组构造查询条件 -->
+                     <!-- AND(id=10 OR id=89 OR id=16) -->
+                     <!-- 遍历ids数组 
+                     
+                       collection:集合，ids数组
+                       item:遍历的每个对象
+                       open:开始遍历时拼接的sql
+                       separator:遍历的间隔符号
+                       close:结束，遍历时拼接的sql
+                     -->
+                       <foreach collection="ids" item="id" open="AND("
+                        separator="OR" close=")">
+                           id=#{id}
+                        </foreach>
+                     
+                </if>
+                 <!-- AND id IN(10,89,16) -->
+                 <!-- <foreach collection="ids" item="id" open="AND id IN ("
+			      separator="," close=")">
+			           #{id} 
+		</         foreach> -->
+          </sql>
+          
+           <!-- 定义resultMap,将用户查询的字段和user这个pojo的属性名作一个对应关系 -->
+           <!-- 
+              type:最终映射的java对象
+              id:resultMap的唯一标示
+            -->
+             <resultMap type="user" id="userListResultMap">
+             
+                 <!-- id标签:查询结果集的唯一标示列(主键或唯一标示) 
+                    column:sql查询字段名(列名)
+                    property:pojo的属性名
+                    
+                     result标签：普通列
+                 -->
+                  <id column="id_" property="id"/>
+                  <result column="username_" property="username"/>
+                  <result column="birthday_" property="birthday"/>
+                  
+             </resultMap>
+      <select id="findUserList" parameterType="queryNo" resultType="user">
+        
+          SELECT * FROM USER 
+          
+            <!-- 自动将第一个and去掉 -->
+            <where>
+               <!-- 
+                  refid:指定sql片段的id,如果要引用其他命名空间的sql片段，需要在前边加namespace
+                -->
+                 
+               <include refid="query_user_where"></include>
+          </where>
+      </select>
+      
+      
+      <!-- 传递hashmap综合查询用户信息 -->
+	<select id="selectUserByHashmap" parameterType="hashmap" resultType="user">
+	   select * from user where id=#{id} and username like '%${username}%'
+	</select>
+	
+		<!-- 查询用户列表总数 用于分页查询 -->
+	 <select id="findUserCount" parameterType="queryNo" resultType="int">
+	        select count(*) from user
+	       <where>
+	          <include refid="query_user_where"></include>
+	       </where>
+	 </select>
+      
+      <!-- 查询用户列表，根据用户名称和用户性别查询用户列表 -->
+      
+      <select id="findUserListResultMap" parameterType="queryNo" resultMap="userListResultMap">
+          select id id_,username username_,birthday birthday_ from user
+          
+            <where>
+	          <include refid="query_user_where"></include>
+	       </where>
+          
+             
+      </select>
+       
+</mapper>
